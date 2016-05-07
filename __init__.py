@@ -19,10 +19,32 @@ class ConstrainedKMeans(BaseEstimator, ClusterMixin, TransformerMixin):
 
         # ...
 
-    # TODO: Implement _violate_constrains
-    def _violate_constraints(instance, cluster, must_link, cannot_link):
-        return False
 
+def _rank_clusters(instance, clusters):
+    """
+    Return a ascendant list of nearest clusters of certain instance
+    :param instance: Instance to compare
+    :param clusters: Clusters
+    :return: the clusters array sorted by distance of instance
+    """
+    clusters_ranks = np.asarray([np.linalg.norm(p - instance) for p in clusters]).argsort()
+    sorted_clusters = np.asarray(clusters)[clusters_ranks]
+
+    return sorted_clusters
+
+
+def _violate_constraints(instance, cluster, must_link, cannot_link):
+    for link in filter(lambda l: instance in l, must_link):
+        other_instance = link - {instance}
+        if other_instance not in cluster:
+            return True
+
+    for link in filter(lambda l: instance in l, cannot_link):
+        other_instance = link - {instance}
+        if other_instance in cluster:
+            return True
+
+    return False
 
 if __name__ == '__main__':
     c = ConstrainedKMeans(n_clusters=3)
