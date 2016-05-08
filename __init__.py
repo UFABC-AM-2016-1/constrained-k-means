@@ -53,7 +53,7 @@ class ConstrainedKMeans(BaseEstimator, ClusterMixin, TransformerMixin):
             self.debug(cluster)
 
         # Test:
-        must_link = np.asarray([(4, 4)])
+        must_link = np.asarray([(4, 1)])
         cannot_link = np.asarray([[6, 3 ]])
 
         for _ in range(500):
@@ -111,5 +111,5 @@ class ConstrainedKMeans(BaseEstimator, ClusterMixin, TransformerMixin):
 
 if __name__ == '__main__':
     c = ConstrainedKMeans(n_clusters=3, debug=True)
-    X = np.array([[random.randrange(0,1500) for _ in range(1)] for p in range(100)])
+    X = np.array([[p] for p in range(10)])
     c.fit(X)
