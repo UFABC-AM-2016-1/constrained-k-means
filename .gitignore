@@ -9,6 +9,10 @@ __pycache__/
 #Pycharm
 .idea/
 
+# Constraints files
+*mustlink
+*cannotlink
+
 # Distribution / packaging
 .Python
 env/
