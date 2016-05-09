@@ -1,11 +1,8 @@
 import numpy as np
-import random
 
-from sklearn.metrics.pairwise import pairwise_distances
 from sklearn.base import BaseEstimator, ClusterMixin, TransformerMixin
 
-from sklearn.datasets import load_digits
-from sklearn.cluster import KMeans
+from sklearn.datasets import load_digits, load_iris, load_diabetes
 
 class Cluster:
         def __init__(self, position, _id):
@@ -50,8 +47,6 @@ class ConstrainedKMeans(BaseEstimator, ClusterMixin, TransformerMixin):
             clusters.append(cluster)
             _id += 1
 
-        return
-
         self.debug("Initial Centroids: ")
         for cluster in clusters:
             self.debug(cluster)
@@ -63,7 +58,7 @@ class ConstrainedKMeans(BaseEstimator, ClusterMixin, TransformerMixin):
                 ranked_clusters = _rank_clusters(d, clusters)
                 for cluster in ranked_clusters:
                     violate_constraint = _violate_constraints(d, cluster, must_link, cannot_link)
-                    if violate_constraint is False:
+                    if violate_constraint == False:
                         cluster.add(d)
                         break
                 if violate_constraint:
@@ -72,13 +67,13 @@ class ConstrainedKMeans(BaseEstimator, ClusterMixin, TransformerMixin):
             for cluster in clusters:
                 cluster.recalculate()
 
-        self.debug(20*"-")
+        self.debug(50*"-")
         for cluster in clusters:
             self.debug("cluster: "+str(cluster))
-            self.debug("Instaces in the group: ")
-            self.debug(cluster.instances)
-            self.debug(20*"-")
+            self.debug("cluster size: "+str(len(cluster.instances)))
+            self.debug(50*"-")
         # ...
+
 
 def _rank_clusters(instance, clusters):
     """
@@ -114,11 +109,31 @@ def _contains(instance, _list):
     return bool([y for y in (instance == _list) if y.all()])
 
 
+def generate_must_cannot_links(dataset, size=2):
+    must_link = []
+    cannot_link = []
+
+    samples = np.random.choice(len(dataset.data), size)
+
+    for sample in samples:
+        value = dataset.target[sample]
+
+
+
+
 if __name__ == '__main__':
 
     digits = load_digits()
 
-    c1 = ConstrainedKMeans(n_clusters=10, debug=False)
-    c1.fit(digits.data)
-    c2 = KMeans(n_clusters=10)
-    c2.fit(digits.data)
+    datasets = [
+        ("iris", load_iris()),
+        ("diabetes", load_diabetes()),
+        ("digits", load_digits())
+        ]
+
+    generate_must_cannot_links(digits)
+
+    #c1 = ConstrainedKMeans(n_clusters=10, debug=True)
+    #c1.fit(digits.data)
+    #c2 = KMeans(n_clusters=10)
+    #c2.fit(digits.data)
