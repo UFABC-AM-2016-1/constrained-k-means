@@ -111,5 +111,5 @@ class ConstrainedKMeans(BaseEstimator, ClusterMixin, TransformerMixin):
 
 if __name__ == '__main__':
     c = ConstrainedKMeans(n_clusters=3, debug=True)
-    X = np.array([[p] for p in range(10)])
+    X = np.array([[p] for p in range(100)])
     c.fit(X)
