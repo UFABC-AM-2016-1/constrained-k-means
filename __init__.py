@@ -44,8 +44,7 @@ class ConstrainedKMeans(BaseEstimator, ClusterMixin, TransformerMixin):
                         clusters[idx].append(d)
                         labels[i] = idx
 
-                        delta = centroids[idx] - d
-                        inertia += np.sqrt(delta.dot(delta))
+                        inertia += _dist(centroids[idx], d)
                         break
                 if violate_constraint:
                     raise IOError("Unable to cluster")
@@ -58,6 +57,25 @@ class ConstrainedKMeans(BaseEstimator, ClusterMixin, TransformerMixin):
         self.labels_ = labels
         self.inertia_ = inertia
 
+        return self
+
+    def predict(self, X):
+        def predict_single(d):
+            return _rank_centroids(d, self.cluster_centers_)[0]
+
+        return map(predict_single, X)
+
+    def transform(self, X):
+        def transform_single(d):
+            return np.array([ _dist(d, c) for c in self.cluster_centers_])
+
+        return map(transform_single, X)
+
+
+def _dist(a, b=0):
+    d = a - b
+    return np.sqrt(d.dot(d))
+
 def _rank_centroids(instance, centroids):
     """
     Return a ascendant list of nearest clusters of certain instance
@@ -66,7 +84,7 @@ def _rank_centroids(instance, centroids):
     :return: the clusters array sorted by distance of instance
     """
     deltas = centroids - instance
-    rank = np.asarray([np.sqrt(d.dot(d)) for d in deltas]).argsort()
+    rank = np.asarray([_dist(d) for d in deltas]).argsort()
 
     return rank
 
