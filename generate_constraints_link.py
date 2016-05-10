@@ -48,4 +48,3 @@ def generate(link_array_size):
         links = {'must_link': must_links, 'cannot_link': cannot_links}
         np.save(name, links)
 
-#generate()
