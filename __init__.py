@@ -136,25 +136,10 @@ iris = datasets.load_iris()
 
 clf = ConstrainedKMeans(n_clusters=3, debug=False)
 
-links = {
-    'must_link': [
-        [
-            iris.data[0],
-            iris.data[50]
-        ]
-    ],
-    'cannot_link': [
-        [
-            iris.data[0],
-            iris.data[2]
-        ]
-    ]
-}
+links = np.load("iris.npy").item()
+print links
 
 # np.save('/tmp/123', links)
 # links = np.load('/tmp/123.npy').item()
 
 clf.fit(iris.data, iris.target, **links)
-print clf.labels_
-
-print clf.labels_[0], clf.labels_[50]

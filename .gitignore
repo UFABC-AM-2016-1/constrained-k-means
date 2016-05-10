@@ -10,8 +10,7 @@ __pycache__/
 .idea/
 
 # Constraints files
-*mustlink
-*cannotlink
+*.npy
 
 # Distribution / packaging
 .Python
