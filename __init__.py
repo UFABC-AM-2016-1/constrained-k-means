@@ -73,6 +73,7 @@ def _dist(a, b=0):
     d = a - b
     return np.sqrt(d.dot(d))
 
+
 def _rank_centroids(instance, centroids):
     """
     Return a ascendant list of nearest clusters of certain instance
@@ -84,6 +85,7 @@ def _rank_centroids(instance, centroids):
     rank = np.asarray([_dist(d) for d in deltas]).argsort()
 
     return rank
+
 
 def _violate_constraints(instance, cluster, other_clusters, must_link, cannot_link):
     def get_other_instance(instance, link):
