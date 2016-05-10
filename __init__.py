@@ -86,23 +86,21 @@ def _rank_centroids(instance, centroids):
     return rank
 
 def _violate_constraints(instance, cluster, other_clusters, must_link, cannot_link):
-    for link in must_link:
-        other_instance = None
+    def get_other_instance(instance, link):
         if (link[0] == instance).all():
-            other_instance = link[1]
+            return link[1]
         elif (link[1] == instance).all():
-            other_instance = link[0]
+            return link[0]
+
+    for link in must_link:
+        other_instance = get_other_instance(instance, link)
         if other_instance is not None:
             for c in other_clusters:
                 if _contains(other_instance, c):
                     return True
 
     for link in cannot_link:
-        other_instance = None
-        if (link[0] == instance).all():
-            other_instance = link[1]
-        elif (link[1] == instance).all():
-            other_instance = link[0]
+        other_instance = get_other_instance(instance, link)
         if other_instance is not None and _contains(other_instance, cluster):
             return True
 
