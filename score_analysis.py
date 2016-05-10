@@ -12,47 +12,46 @@ from sklearn.datasets import load_digits, load_iris, load_diabetes
 from sklearn.metrics import silhouette_samples, silhouette_score, adjusted_rand_score
 from sklearn import datasets
 import __init__ as ck
+import generate_constraints_link as generate_constraints_link
 
 random_state = 170
 
-iris = datasets.load_iris()
-X=iris.data
-y=iris.target
+#print generate_constraints_link.datasets
+
+for dataset_label, dataset in generate_constraints_link.datasets:
+	print dataset_label
+	X=dataset.data
+	y=dataset.target
+
+	clusters=[5,10,15,20,25,30,35,40,45]
+	serie_score=[]
+	for n_cluster in clusters:
+		y_pred = KMeans(n_clusters=n_cluster, random_state=random_state).fit_predict(X)
+		rand_avg = adjusted_rand_score( y  , y_pred )
+		print "KMeans Classic:",rand_avg
+		serie_score.append(rand_avg)
+	plt.plot(clusters, serie_score, label='KMeans', linewidth=2.0)
+
+		
+	
+	for link_size in [5,10,15,20]:
+		serie_score=[]
+		generate_constraints_link.generate(link_array_size=link_size)
+		links = np.load(dataset_label+'.npy').item()
+		for n_cluster in clusters:
+			clf = ck.ConstrainedKMeans(n_clusters=n_cluster)
+
+			clf.fit(X, y, **links)
+
+			rand_avg = adjusted_rand_score( y  , clf.labels_ )
+			serie_score.append(rand_avg)
+			print "Link Size ",link_size,": ",rand_avg
+		plt.plot(clusters, serie_score, label="LinkSize "+str(link_size))
+	plt.xlabel("Clusters")
+	plt.ylabel("Rand Ajustado")
+	plt.legend(loc="upper right")		
+	plt.show()
 
 
-y_pred = KMeans(n_clusters=3, random_state=random_state).fit_predict(X)
-rand_avg = adjusted_rand_score( y  , y_pred )
-print rand_avg
-
-
-iris = datasets.load_iris()
-
-clf = ck.ConstrainedKMeans(n_clusters=3, debug=False)
-
-links = {
-    'must_link': [
-        [
-            iris.data[0],
-            iris.data[50]
-        ]
-    ],
-    'cannot_link': [
-        [
-            iris.data[0],
-            iris.data[2]
-        ]
-    ]
-}
-
-# np.save('/tmp/123', links)
-# links = np.load('/tmp/123.npy').item()
-
-clf.fit(iris.data, iris.target, **links)
-#print clf.labels_
-
-#print clf.labels_[0], clf.labels_[50]
-
-rand_avg = adjusted_rand_score( y  , clf.labels_ )
-print rand_avg
 
 quit()
