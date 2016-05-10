@@ -112,13 +112,3 @@ def _contains(instance, _list):
     if not _list:
         return False
     return bool([y for y in (instance == _list) if y.all()])
-
-
-def generate_must_cannot_links(dataset, size=2):
-    must_link = []
-    cannot_link = []
-
-    samples = np.random.choice(len(dataset.data), size)
-
-    for sample in samples:
-        value = dataset.target[sample]
