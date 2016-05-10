@@ -25,21 +25,22 @@ class ConstrainedKMeans(BaseEstimator, ClusterMixin, TransformerMixin):
         samples_idx = np.random.choice(range(n_samples), self.n_clusters, replace=False)
         centroids = np.array(map(lambda i: X[i], samples_idx))
         clusters = [[] for _ in range(self.n_clusters)]
-        clusters_labels = [[] for _ in range(self.n_clusters)]
 
         labels = [0 for _ in X]
         inertia = 0
 
-        for _ in range(300):
+        for _ in range(50):
             for i in range(self.n_clusters):
                 clusters[i] = []
-                clusters_labels[i] = []
                 inertia = 0
 
             for i, d in enumerate(X):
                 rank = _rank_centroids(d, centroids)
+                violate_constraint = True
                 for idx in rank:
-                    violate_constraint = _violate_constraints(d, clusters[idx], must_link, cannot_link)
+                    other_clusters = [clusters[j] for j in range(self.n_clusters) if j != idx]
+                    violate_constraint = _violate_constraints(d, clusters[idx], other_clusters, must_link, cannot_link)
+                    # violate_constraint = _violate_constraints(d, clusters[idx], must_link, cannot_link)
                     if not violate_constraint:
                         clusters[idx].append(d)
                         labels[i] = idx
@@ -88,18 +89,25 @@ def _rank_centroids(instance, centroids):
 
     return rank
 
-def _violate_constraints(instance, cluster, must_link, cannot_link):
-    if len(cluster) == 0:
-        return False
+def _violate_constraints(instance, cluster, other_clusters, must_link, cannot_link):
+    for link in must_link:
+        other_instance = None
+        if (link[0] == instance).all():
+            other_instance = link[1]
+        elif (link[1] == instance).all():
+            other_instance = link[0]
+        if other_instance is not None:
+            for c in other_clusters:
+                if _contains(other_instance, c):
+                    return True
 
-    for link in filter(lambda l: _contains(instance, l), must_link):
-        other_instance = link[1] if (link[0] - instance).all() else link[0]
-        if not _contains(other_instance, cluster):
-            return True
-
-    for link in filter(lambda l: _contains(instance, l), cannot_link):
-        other_instance = link[1] if (link[0] - instance).all() else link[0]
-        if _contains(other_instance, cluster):
+    for link in cannot_link:
+        other_instance = None
+        if (link[0] == instance).all():
+            other_instance = link[1]
+        elif (link[1] == instance).all():
+            other_instance = link[0]
+        if other_instance is not None and _contains(other_instance, cluster):
             return True
 
     return False
@@ -107,6 +115,8 @@ def _violate_constraints(instance, cluster, must_link, cannot_link):
 
 def _contains(instance, _list):
     """Returns True if the ndarray list contains the specified instance"""
+    if not _list:
+        return False
     return bool([y for y in (instance == _list) if y.all()])
 
 
@@ -122,19 +132,29 @@ def generate_must_cannot_links(dataset, size=2):
 
 
 
-if __name__ == '__main__':
+iris = datasets.load_iris()
 
-    digits = datasets.load_iris()
+clf = ConstrainedKMeans(n_clusters=3, debug=False)
 
-    datasets = [
-        ("iris", load_iris()),
-        ("diabetes", load_diabetes()),
-        ("digits", load_digits())
+links = {
+    'must_link': [
+        [
+            iris.data[0],
+            iris.data[50]
         ]
+    ],
+    'cannot_link': [
+        [
+            iris.data[0],
+            iris.data[2]
+        ]
+    ]
+}
 
-    generate_must_cannot_links(digits)
+# np.save('/tmp/123', links)
+# links = np.load('/tmp/123.npy').item()
 
+clf.fit(iris.data, iris.target, **links)
+print clf.labels_
 
-    c1 = ConstrainedKMeans(n_clusters=3, debug=False)
-    c1.fit(digits.data, digits.target)
-    print c1.labels_
+print clf.labels_[0], clf.labels_[50]
